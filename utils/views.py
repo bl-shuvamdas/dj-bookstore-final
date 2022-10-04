@@ -30,7 +30,9 @@ class BaseAPIView(views.APIView):
         if not self.model and not self.queryset:
             raise exceptions.APIException("`Both model` or `queryset` cannot be empty")
 
-        lookup_payload = {self.lookup_field: lookup_value, "user": user_id}
+        lookup_payload = {self.lookup_field: lookup_value}
+        if user_id:
+            lookup_payload["user"] = user_id
 
         if lookup_value and not self.lookup_field:
             raise exceptions.APIException("`lookup_field` required")
@@ -54,7 +56,7 @@ class BaseAPIView(views.APIView):
         return response.Response(serializer.data)
 
     def post(self, request):
-        serializer = self.serializer(data=request.data)
+        serializer = self.serializer(data=request.data, context={"user": request.user})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return response.Response(serializer.data, status=201)

@@ -12,4 +12,9 @@ urlpatterns = [
     # inventory
     path("book/", views.BookAPIView.as_view(), name="book-list"),
     path("book/<int:pk>/", views.BookAPIView.as_view(), name="book-detail"),
+    # cart
+    path("cart/", views.CartAPIView.as_view(), name="cart-list"),
+    path("cart/<int:pk>/", views.CartAPIView.as_view(), name="cart-detail"),
+    # checkout
+    path("checkout/<int:pk>/", views.checkout_view, name="checkout"),
 ]

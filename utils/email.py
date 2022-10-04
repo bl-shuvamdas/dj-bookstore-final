@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -24,7 +24,9 @@ class Email:
         username = payload.get("username") or recipient.split("@")[0]
         username = username.capitalize()
         token = JWT.encode(
-            payload=payload, aud=AudienceENUM.VERIFY_USER, exp=timedelta(minutes=30)
+            payload=payload,
+            aud=AudienceENUM.VERIFY_USER,
+            exp=datetime.utcnow() + timedelta(minutes=30),
         )
         subject = "%(username)s account verification for %(base_url)s" % {
             "username": username,
@@ -35,5 +37,4 @@ class Email:
             "url": settings.BASE_URL
             + reverse("api:verify_user", kwargs={"token": token}),
         }
-        print(message)
         cls.send(recipients=[recipient], subject=subject, message=message)

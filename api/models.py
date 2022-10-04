@@ -45,6 +45,7 @@ class Book(DJBaseModel):
     title = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     author = models.CharField(max_length=10)
+    quantity = models.PositiveBigIntegerField(default=1)
 
 
 class CartItem(DJBaseModel):
@@ -56,14 +57,14 @@ class CartItem(DJBaseModel):
     user = models.ForeignKey("api.User", on_delete=models.CASCADE)
     book = models.ForeignKey("api.Book", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    ordered = models.BooleanField(default=False)
+    cart = models.ForeignKey("api.Cart", on_delete=models.CASCADE)
 
     @property
     def total_price(self) -> float:
-        return self.item.price * self.quantity
+        return self.book.price * self.quantity  # noqa
 
     def __str__(self):
-        return f"{self.quantity} of {self.item.title}"  # noqa
+        return f"{self.quantity} of {self.book.title}"  # noqa
 
 
 class Cart(DJBaseModel):
@@ -74,16 +75,16 @@ class Cart(DJBaseModel):
 
     is_ordered = models.BooleanField(default=False)
     user = models.ForeignKey("api.User", on_delete=models.CASCADE)
-    cart_items = models.ManyToManyField("api.CartItem")
+    cart_items = models.ManyToManyField("api.CartItem", related_name="cart_items")
 
     @property
     def total_price(self):
-        return sum([item.total_price for item in self.cart_items.all()])
+        return sum([item.total_price for item in self.cart_items.all()])  # noqa
 
 
 # signals
 @receiver(post_save, sender="api.User")
-def mail_verify_user(created: bool, instance: User, **kwargs) -> None:
+def mail_verify_user(created: bool, instance: User, **kwargs) -> None:  # noqa
     if created:
         Email.verify_user(
             payload={"username": instance.username, "user_id": instance.pk},
